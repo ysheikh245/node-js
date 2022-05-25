@@ -1,0 +1,59 @@
+########## Stopping the process ##########
+- process.exit - Hard exits the EventLoop - Similar to System.exit(0);
+
+############ Redirection #########
+- response.statusCode = 302 ----------- Redirects the user to the root path
+- response.setHeader('Location','/') 
+
+############ Code ############
+- Basic Redirection: @see app-http-core.js
+- If/else URL Redirection: @see app-http-core-streams.js
+
+############# General #############
+const body = []
+const parsedBody = Buffer.concat(body).toString()
+- package.json file contains startup commands. The scripts tag is where we have the startup
+  start is a special key. so, npm start will execute the app.js if we have this entry in "start" : "node app.js" 
+  if we had custom key, say "start-server", we would need npm run start-server
+- npm install <packageName> installs the 3rd party packages
+    npm install nodemon --save-dev (only installs the dependencies in DEV environment)
+- nodemon is a development debug tool which restarts application on changes
+- Types of Errors
+    - Syntax Errors
+    - Runtime Errors
+    - Logical Errors
+- To add debugging configuration, Run -> Add Configurations -> Select node.js, add  
+    "restart" : true, "runtimeExecutable" : nodemon, "console" : "integratedTerminal
+- path.dirname(process.mainModule.fileName) : will get the directory name from where process started    
+- npm install --save mysql2 (write SQL code in NodeJS and interact) 
+
+############# Event Loop #############
+It executes the following as mentioned below
+    - Timers                    : execute setTimeout(), setInterval()
+    - Pending Callbacks         : execute I/O related callbacks or blocking operations
+    - Poll                      : retrieve new I/o events and execute their callbacks
+    - Check                     : execute setImmediate() callbacks
+    - Close events callback     : Execute all close event callbacks
+
+############## ExpressJS ##############
+const express = require('express')
+const app = express()
+const server = http.createServer(app) // app is a valid request handler as well. Won't do anything though
+- app.listen() creates the httpServer and also listens on port 3000
+- request.body gives us the body but by default does not parse the body. In order to do so, we need another library
+- body-parser is the 3rd party for parsing the request body 
+    - app.use(bodyParser.urlencoded( {extended: false} ))
+- For GET requests, app.get() 
+- For POST requests, app.post()
+- In order to create multiple routes in different files, use express.Router()
+- Create the routes in the respective modules and later use, app.use(routeFileName)
+- You can chain different methods on the response object. send() always has to be the last operations
+- app.use('/admin', adminRoutes): maps all the URLs with /admin go to adminRoutes js file
+
+
+Express-Validator
+const {body} = require('express-validator/check')
+body('title').trim().isLength({min: 5}) : validates the title property and checks if it is min. 5 char long
+
+const {validationResult} = require('express-validator/check')
+const errors = validationResult(request)
