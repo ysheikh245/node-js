@@ -26,6 +26,12 @@ const parsedBody = Buffer.concat(body).toString()
     "restart" : true, "runtimeExecutable" : nodemon, "console" : "integratedTerminal
 - path.dirname(process.mainModule.fileName) : will get the directory name from where process started    
 - npm install --save mysql2 (write SQL code in NodeJS and interact) 
+- Path Param: /product/:productId (here productId in the URL is the path param)
+- path.join(__dirname, 'access.log', flags: { 'a' }) : this looks for access.log (create, write or read) in the  root directory. The flags attribute in 'a' mode is for append. We can use this with morgan to log the information in the file instead of console
+
+
+############# Stripe API keys #############
+const stripe = require('stripe')('key_name')
 
 ############# Event Loop #############
 It executes the following as mentioned below
@@ -51,9 +57,109 @@ const server = http.createServer(app) // app is a valid request handler as well.
 - app.use('/admin', adminRoutes): maps all the URLs with /admin go to adminRoutes js file
 
 
-Express-Validator
+ ############## Express-Validator  ##############
 const {body} = require('express-validator/check')
 body('title').trim().isLength({min: 5}) : validates the title property and checks if it is min. 5 char long
 
 const {validationResult} = require('express-validator/check')
 const errors = validationResult(request)
+
+
+ ############## JSON Web Token  ##############
+npm install --save jsonwebtoken
+jwt.sign({email: 'userEmailId', userId: ''userId'}, 'someSuperSuperSecret', {expiresIn: '1h'});
+
+
+ ############## Mongoose  ##############
+npm install --save mongoose
+- How to connect to mongoose?
+	const mongoose = require('mongoose);
+	mongoose.connect('URL-to-connect').then(result => {
+	    app.listen('port');
+	})
+	.catch(err => {
+	   console.log(err);
+	});;
+
+- How to create a Schema?
+	const mongoose = require('mongoose);
+	const schema = mongoose.Schema;
+	const productSchema = new Schema( {
+						title: { 
+							type: String, 
+							required: true  
+						        },
+						id: { 
+							type: String, 
+							required: true  
+						        },
+						description: { 
+							type: String, 
+							required: true  
+						        }
+					         } );
+	
+	module.exports = mongoose.model('Product', productSchema) : in this case, mongoose will keep  the table name as products (name of the model lower cased and plural'd)
+	const product    = new Product( {title: 'title of the product'} );
+	--- you can use Product.save() ---- the 'save' is coming from mongoose
+	--- Product.find() returns an array of the records in the database
+	--- Product.findById('Id-of-the-Product') --- finds the object matching the id
+	
+	For relations in Mongoose, products has userId reference, we add the following in productSchema
+	const productSchema = ........, 
+				userId: { 
+					 type: Schema.Types.ObjectId, 
+					 ref: 'User'  
+					}
+	- If the products has an userId and we want to populate the user object as well while finding Product, we do the  following:
+	   Product.find().populate('userId') --- It populates the object associated with the userId
+                 Product.find().select('title price -_id') --- The select function selects the title, price and also excludes the _id (look at the negative sign before the identifier) 
+
+             - To add utility methods we can do it like mentioned below: (they are called instance methods). You can find more information under Schemas in the official mongoose documentation
+	  userSchema.methods.addToCart() = function(product) { .......
+	  }	
+
+ ############## Environment Variables  ##############
+${process.env.MONGO_USER} : you can use this form in the code. To set the environment variable, we have got multiple options. 
+- Option1 (DEV environment while doing development): In the dev environment, we can use nodemon.json file and use nodemon to start the server - Ch.#450, 8:00 onwards
+- Option2 -> package.json -> before supplying the main app file, give all the variables and then finally node <mainFile.js>. e.g.: MONGODB_USER=user MONGODB_PWD=password node app.js 
+- In the hosting provider, Config Vars is  the place where we set the ENVIRONMENT variables
+
+
+ ############## Helmet  ##############
+- Secures HTTP response headers
+npm install --save helmet
+app.use(helmet());
+
+ ############## Compression  ##############
+npm install --save compression
+app.use(compression());
+
+
+ ############## Logging  ##############
+npm install --save morgan
+app.use(morgan('combined'));
+
+- How to log information in a file
+	const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
+              app.use(morgan('combined', { stream: accessLogStream }));
+
+
+ ############## Creating a certificate  ##############
+- Use the openssl tool to create the certificate
+- command: openssl req -nodes -new -x509 -keyout server.key -out server.cert. It will prompt a couple of questions, select valid values, common name=localhost (otherwise will not work on localhost)
+- This creates 2 files, server.cert (Certificate) and server.key (this is the private key)
+To use the certificate, we will need to use https
+const https = require('https')
+
+const serverCertificate = fs.readFileSync('server.cert');
+const serverKey = fs.readFileSync('server.key');
+
+https.createServer('accepts 2 arguments. The first one is an object accepting serverCertificate and serverKey. The second is the middleware we will use').listen();
+For e.g. https.createServer( {key: serverKey, certificate: serverCertificate}, app).listen(process.env.PORT || 3000);
+
+
+
+ ############## Hosting Provider - Heroku  ##############
+- Refer to Heroku hosting provider for deploying application in Heroku
+- Create a file Procfile with the entry web: node app.js (this is similar to Jenkinsfile in Jules)
